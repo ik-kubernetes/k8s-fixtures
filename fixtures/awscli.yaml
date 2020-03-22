@@ -1,0 +1,25 @@
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: aws-cli
+  labels:
+    name: aws-cli
+spec:
+  containers:
+  - name: aws-cli
+    image: cgswong/aws:aws
+    command:
+    - "sleep"
+    - "9999999"
+    resources:
+      limits:
+        cpu: 100m
+        memory: 100Mi
+      requests:
+        cpu: 100m
+        memory: 100Mi
+
+# kubectl apply -f ./k8s-fixtures/awscli.yaml
+# kubectl delete -f ./k8s-fixtures/awscli.yaml
+# kubectl exec -it mssql -- /bin/bash
