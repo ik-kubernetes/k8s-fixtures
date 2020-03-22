@@ -1,0 +1,37 @@
+# bitnami/kubectl:1.14
+---
+apiVersion: "v1"
+kind: "Pod"
+metadata:
+  labels:
+    jenkins: "slave"
+    jenkins/parent-slave: "true"
+    jenkins/tools: "true"
+  name: "tools-kubectl"
+  namespace: "cicd"
+spec:
+  containers:
+  - command:
+    - "cat"
+    env:
+    - name: "AWS_DEFAULT_REGION"
+      value: "us-west-2"
+    envFrom:
+    - secretRef:
+        name: "jenkins-jobs-secrets"
+    image: "cloudkats/k8s-test-tools:v1.14.10"
+    imagePullPolicy: "IfNotPresent"
+    name: "k8s-test"
+    resources:
+      limits:
+        cpu: "50m"
+        memory: "50Mi"
+      requests: {}
+    tty: true
+  restartPolicy: "Never"
+  serviceAccount: "jenkins-agent"
+  serviceAccountName: "jenkins-agent"
+
+# kubectl apply -f ./k8s-fixtures/pod-kubectl.yaml
+# kubectl delete -f ./k8s-fixtures/pod-kubectl.yaml
+# kubectl exec -it tools-kubectl -- bash
