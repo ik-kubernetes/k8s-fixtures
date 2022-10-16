@@ -1,0 +1,56 @@
+#  https://www.vaultproject.io/docs/platform/k8s/csi
+---
+apiVersion: secrets-store.csi.x-k8s.io/v1alpha1
+kind: SecretProviderClass
+metadata:
+  name: vault-db-creds
+spec:
+  # Vault CSI Provider
+  provider: vault
+  parameters:
+    # Vault role name to use during login
+    roleName: 'app'
+    # Vault's hostname
+    vaultAddress: 'https://vault:8200'
+    # TLS CA certification for validation
+    vaultCACertPath: '/vault/tls/ca.crt'
+    objects: |
+      - objectName: "dbUsername"
+        secretPath: "database/creds/db-app"
+        secretKey: "username"
+      - objectName: "dbPassword"
+        secretPath: "database/creds/db-app"
+        secretKey: "password"
+    # "objectName" is an alias used within the SecretProviderClass to reference
+    # that specific secret. This will also be the filename containing the secret.
+    # "secretPath" is the path in Vault where the secret should be retrieved.
+    # "secretKey" is the key within the Vault secret response to extract a value from.
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app
+  labels:
+    app: demo
+spec:
+  selector:
+    matchLabels:
+      app: demo
+  replicas: 1
+  template:
+    spec:
+      serviceAccountName: app
+      containers:
+        - name: app
+          image: my-app:1.0.0
+          volumeMounts:
+            - name: 'vault-db-creds'
+              mountPath: '/mnt/secrets-store'
+              readOnly: true
+      volumes:
+        - name: vault-db-creds
+          csi:
+            driver: 'secrets-store.csi.k8s.io'
+            readOnly: true
+            volumeAttributes:
+              secretProviderClass: 'vault-db-creds'

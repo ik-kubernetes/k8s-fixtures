@@ -1,0 +1,64 @@
+# https://github.com/aws/amazon-eks-pod-identity-webhook
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: my-serviceaccount
+  namespace: default
+  annotations:
+    eks.amazonaws.com/role-arn: "arn:aws:iam::111122223333:role/s3-reader"
+    # optional: Defaults to "sts.amazonaws.com" if not set
+    eks.amazonaws.com/audience: "sts.amazonaws.com"
+    # optional: When set to "true", adds AWS_STS_REGIONAL_ENDPOINTS env var
+    #   to containers
+    eks.amazonaws.com/sts-regional-endpoints: "true"
+    # optional: Defaults to 86400 for expirationSeconds if not set
+    #   Note: This value can be overwritten if specified in the pod
+    #         annotation as shown in the next step.
+    eks.amazonaws.com/token-expiration: "86400"
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: my-pod
+  namespace: default
+  annotations:
+    # optional: A comma-separated list of initContainers and container names
+    #   to skip adding volumes and environment variables
+    eks.amazonaws.com/skip-containers: "init-first,sidecar"
+    # optional: Defaults to 86400, or value specified in ServiceAccount
+    #   annotation as shown in previous step, for expirationSeconds if not set
+    eks.amazonaws.com/token-expiration: "86400"
+spec:
+  serviceAccountName: my-serviceaccount
+  initContainers:
+  - name: init-first
+    image: container-image:version
+  containers:
+  - name: sidecar
+    image: container-image:version
+  - name: container-name
+    image: container-image:version
+### Everything below is added by the webhook ###
+    env:
+    - name: AWS_DEFAULT_REGION
+      value: us-west-2
+    - name: AWS_REGION
+      value: us-west-2
+    - name: AWS_ROLE_ARN
+      value: "arn:aws:iam::111122223333:role/s3-reader"
+    - name: AWS_WEB_IDENTITY_TOKEN_FILE
+      value: "/var/run/secrets/eks.amazonaws.com/serviceaccount/token"
+    - name: AWS_STS_REGIONAL_ENDPOINTS
+      value: "regional"
+    volumeMounts:
+    - mountPath: "/var/run/secrets/eks.amazonaws.com/serviceaccount/"
+      name: aws-token
+  volumes:
+  - name: aws-token
+    projected:
+      sources:
+      - serviceAccountToken:
+          audience: "sts.amazonaws.com"
+          expirationSeconds: 86400
+          path: token

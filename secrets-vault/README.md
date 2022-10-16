@@ -8,3 +8,8 @@
 - [Vault annotations](https://www.vaultproject.io/docs/platform/k8s/injector/annotations)
 - [Codify Vault](https://github.com/hashicorp/learn-vault-codify)
 - [Learn Vault Agent](https://github.com/ik-security/learn-vault-agent)
+- [Vault Sidecar Injector](https://github.com/Talend/vault-sidecar-injector)
+- [Vault: cdktf](https://github.com/hashicorp/terraform-cdk/tree/main/examples/typescript)
+- [Vault: tutorial official](https://www.vaultproject.io/docs/platform/k8s/injector/examples)
+- [Vault: tutorials](https://devopstales.github.io/kubernetes/k8s-vault-v2/)
+- [Vault: how to great](https://www.infracloud.io/blogs/kubernetes-secrets-hashicorp-vault/)
