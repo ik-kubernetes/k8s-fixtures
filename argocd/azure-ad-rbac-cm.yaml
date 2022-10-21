@@ -1,0 +1,17 @@
+/* https: //github.com/argoproj/argo-cd/blob/master/docs/operator-manual/user-management/microsoft.md */
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: argocd-rbac-cm
+  namespace: argocd
+data:
+  policy.default: role:readonly
+  policy.csv: |
+        p, role:org-admin, applications, *, */*, allow
+        p, role:org-admin, clusters, get, *, allow
+        p, role:org-admin, repositories, get, *, allow
+        p, role:org-admin, repositories, create, *, allow
+        p, role:org-admin, repositories, update, *, allow
+        p, role:org-admin, repositories, delete, *, allow
+        g, "84ce98d1-e359-4f3b-85af-985b458de3c6", role:org-admin
