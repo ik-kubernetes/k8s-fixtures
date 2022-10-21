@@ -1,0 +1,36 @@
+# https://dev.to/stack-labs/configuring-argocd-on-amazon-eks-k01
+# setup secret for github/gitlab
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: argocd-cm
+  namespace: argocd
+  labels:
+    app.kubernetes.io/name: argocd-cm
+    app.kubernetes.io/part-of: argocd
+data:
+  repositories: |
+    - url: <GIT_REPOSITORY_URL>
+      passwordSecret:
+        name: demo
+        key: password
+      usernameSecret:
+        name: demo
+        key: username
+  admin.enabled: "true"
+  accounts.demo.enabled: "true"
+  accounts.demo: login
+  accounts.ci.enabled: "true"
+  accounts.ci: apiKey
+
+# GIT_USERNAME=<GIT_USERNAME>
+# GIT_TOKEN=<GIT_TOKEN>
+
+# $ kubectl create secret generic demo \
+# --from-literal=username=$GIT_USERNAME \
+# --from-literal=password=$GIT_TOKEN
+# sed -i "s,<GIT_REPOSITORY_URL>,$GIT_REPOSITORY_URL,g" argocd-configmap.yaml
+
+# $ kubectl apply -f argocd-configmap.yaml
+# argocd account update-password --account demo --current-password "${ADMIN_PASSWORD}" --new-password "<DEMO_PASSWORD>"

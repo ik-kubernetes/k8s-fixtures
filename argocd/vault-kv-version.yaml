@@ -1,0 +1,15 @@
+# https://github.com/argoproj-labs/argocd-vault-plugin/blob/main/examples/kv-version.yaml
+---
+# Setting KV version
+# The default KV is set to 2 we are overriding to use KV 1 in this example
+kind: Secret
+apiVersion: v1
+metadata:
+  name: example-annotation
+  annotations:
+    avp.kubernetes.io/path: "secret/database"
+    avp.kubernetes.io/kv-version: "1"
+type: Opaque
+data:
+  username: <username>
+  password: <password>

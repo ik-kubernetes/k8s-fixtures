@@ -1,0 +1,15 @@
+# https://github.com/argoproj-labs/argocd-vault-plugin/blob/main/examples/annotation-example.yaml
+---
+# Using avp.kubernetes.io/path  Annotation
+# We are setting avp.kubernetes.io/path  to tell the plugin exactly where to find data
+# https://argocd-vault-plugin.readthedocs.io/en/stable/howitworks/#generic-placeholders
+kind: Secret
+apiVersion: v1
+metadata:
+  name: example-annotation
+  annotations:
+    avp.kubernetes.io/path: "secret/data/database"
+type: Opaque
+data:
+  username: <username>
+  password: <password>
