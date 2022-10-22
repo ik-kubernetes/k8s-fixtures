@@ -1,4 +1,4 @@
-// https://colinwilson.uk/2022/03/27/secret-management-with-gitops-and-argo-cd-vault-plugin/#2-update-argo-cd-custom-values-file
+# https://colinwilson.uk/2022/03/27/secret-management-with-gitops-and-argo-cd-vault-plugin/#2-update-argo-cd-custom-values-file
 ---
 apiVersion: traefik.containo.us/v1alpha1
 kind: IngressRoute
