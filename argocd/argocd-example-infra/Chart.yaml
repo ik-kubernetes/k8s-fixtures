@@ -1,0 +1,4 @@
+# https://github.com/stevesea/argocd-helm-app-of-apps-example/blob/master/argocd-example-infra/Chart.yaml
+---
+name: argocd-example-infra
+version: 0.1.0

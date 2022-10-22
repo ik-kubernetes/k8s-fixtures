@@ -1,0 +1,3 @@
+# https://github.com/stevesea/argocd-helm-app-of-apps-example/tree/master/argocd-example-apps
+name: argocd-example-apps
+version: 0.1.0
