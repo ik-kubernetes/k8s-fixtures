@@ -1,0 +1,184 @@
+https://argo-cd.readthedocs.io/en/stable/operator-manual/applicationset/Generators-Pull-Request/
+---
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: myapps
+spec:
+  generators:
+  - pullRequest:
+    # ...
+    # Include any pull request ending with "argocd". (optional)
+      # https://argo-cd.readthedocs.io/en/latest/operator-manual/applicationset/Generators-Pull-Request/
+      gitlab:
+        # The GitLab project.
+        project: myproject
+        api: https://git.example.com/
+        # Reference to a Secret containing an access token. (optional)
+        tokenRef:
+          secretName: gitlab-token
+          key: token
+        filters:
+        - branchMatch: ".*-argocd"
+        labels:
+          - preview
+
+        Ingress Configuration
+        User Management
+        Security
+        TLS configuration
+        Cluster Bootstrapping
+        Secret Management
+        High Availability
+        Disaster Recovery
+        Git Webhook Configuration
+        Resource Health
+        Resource Actions
+        Custom Tooling
+        Custom Styles
+        Metrics
+        Web-based Terminal
+        Notification
+        Troubleshooting Tools
+        ApplicationSet
+            Introduction
+            Installations
+            Use Cases
+            Security
+            How ApplicationSet controller interacts with Argo CD
+            Generators
+                Generators
+                List Generator
+                Cluster Generator
+                Git Generator
+                Matrix Generator
+                Merge Generator
+                SCM Provider Generator
+                Cluster Decision Resource Generator
+                Pull Request Generator
+            Template fields
+            Controlling Resource Modification
+            Application Pruning & Resource Deletion
+        Server Configuration Parameters
+        Upgrading
+    User Guide
+    Developer Guide
+    FAQ
+    Security Considerations
+    Support
+    Roadmap
+    Releases ⧉
+    Blog ⧉
+
+Table of contents
+
+    GitHub
+    GitLab
+    Gitea
+    Bitbucket Server
+    Filters
+    Template
+    Webhook Configuration
+        Github webhook configuration
+        Gitlab webhook configuration
+
+Pull Request Generator¶
+
+The Pull Request generator uses the API of an SCMaaS provider (GitHub, Gitea, or Bitbucket Server) to automatically discover open pull requests within a repository. This fits well with the style of building a test environment when you create a pull request.
+
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: myapps
+spec:
+  generators:
+  - pullRequest:
+      # When using a Pull Request generator, the ApplicationSet controller polls every `requeueAfterSeconds` interval (defaulting to every 30 minutes) to detect changes.
+      requeueAfterSeconds: 1800
+      # See below for provider specific options.
+      github:
+        # ...
+
+Note
+
+Know the security implications of PR generators in ApplicationSets. Only admins may create ApplicationSets to avoid leaking Secrets, and only admins may create PRs if the project field of an ApplicationSet with a PR generator is templated, to avoid granting management of out-of-bounds resources.
+GitHub¶
+
+Specify the repository from which to fetch the GitHub Pull requests.
+
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: myapps
+spec:
+  generators:
+  - pullRequest:
+      github:
+        # The GitHub organization or user.
+        owner: myorg
+        # The Github repository
+        repo: myrepository
+        # For GitHub Enterprise (optional)
+        api: https://git.example.com/
+        # Reference to a Secret containing an access token. (optional)
+        tokenRef:
+          secretName: github-token
+          key: token
+        # (optional) use a GitHub App to access the API instead of a PAT.
+        appSecretName: github-app-repo-creds
+        # Labels is used to filter the PRs that you want to target. (optional)
+        labels:
+        - preview
+      requeueAfterSeconds: 1800
+  template:
+  # ...
+
+    owner: Required name of the GitHub organization or user.
+    repo: Required name of the GitHub repository.
+    api: If using GitHub Enterprise, the URL to access it. (Optional)
+    tokenRef: A Secret name and key containing the GitHub access token to use for requests. If not specified, will make anonymous requests which have a lower rate limit and can only see public repositories. (Optional)
+    labels: Labels is used to filter the PRs that you want to target. (Optional)
+    appSecretName: A Secret name containing a GitHub App secret in repo-creds format.
+
+GitLab¶
+
+Specify the project from which to fetch the GitLab merge requests.
+
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: myapps
+spec:
+  generators:
+  - pullRequest:
+      requeueAfterSeconds: 1800
+      gitlab:
+        # The GitLab project.
+        project: myproject
+        # For self-hosted GitLab (optional)
+        api: https://git.example.com/
+        # Reference to a Secret containing an access token. (optional)
+        tokenRef:
+          secretName: gitlab-token
+          key: token
+        # Labels is used to filter the MRs that you want to target. (optional)
+        labels:
+        - preview
+        # MR state is used to filter MRs only with a certain state. (optional)
+        pullRequestState: opened
+  template:
+    metadata:
+      name: 'myapp-{{branch}}-{{number}}'
+    spec:
+      source:
+        repoURL: 'https://github.com/myorg/myrepo.git'
+        targetRevision: '{{head_sha}}'
+        path: kubernetes/
+        helm:
+          parameters:
+          - name: "image.tag"
+            value: "pull-{{head_sha}}"
+      project: "my-project"
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: default
