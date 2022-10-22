@@ -1,0 +1,38 @@
+# https://about.gitlab.com/blog/2022/08/02/how-to-provision-reviewops/
+---
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: review-the-application
+  namespace: argocd
+spec:
+  generators:
+  - pullRequest:
+      gitlab:
+        project: <project-id>
+        api: https://gitlab.com/
+        tokenRef:
+          secretName: <gitlab-token>
+          key: token
+        pullRequestState: opened
+      requeueAfterSeconds: 60
+  template:
+    metadata:
+      name: 'review-the-application-{{number}}'
+    spec:
+      source:
+        repoURL: <repository-with-manifest-files>
+        path: chart/
+        targetRevision: 'HEAD'
+        helm:
+          parameters:
+          - name: "image.repository"
+            value: "registry.gitlab.com/<group-and-project-path>/{{branch}}"
+          - name: "image.tag"
+            value: "{{head_sha}}"
+          - name: "service.url"
+            value: "the-application-{{number}}.<ip>.nip.io"
+      project: default
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: dynamic-environments-with-argo-cd
