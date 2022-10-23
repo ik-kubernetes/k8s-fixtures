@@ -1,0 +1,66 @@
+---
+apiVersion: secrets-store.csi.x-k8s.io/v1
+kind: SecretProviderClass
+metadata:
+  name: first-test-aws-ssm-csi
+  namespace: default
+spec:
+  provider: aws
+  parameters:
+    objects: |
+      - objectName: "/test-secrets-csi-driver/test"
+        objectType: "ssmparameter"
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  annotations:
+    eks.amazonaws.com/role-arn: arn:aws:iam::XXXXXXXXXX:role/eks-serviceaccount-pod-web-identity-test
+  labels:
+    app: tester
+    team: platform
+    desc: pod-should-assume-me-in-order-to-access-secrets
+  name: pod-web-identity-test
+  namespace: default
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-deployment
+  namespace: default
+  labels:
+    app: nginx
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      serviceAccountName: pod-web-identity-test
+      volumes:
+      - name: secrets-store-inline
+        csi:
+          driver: secrets-store.csi.k8s.io
+          readOnly: true
+          volumeAttributes:
+            secretProviderClass: "first-test-aws-ssm-csi"
+      containers:
+      - name: nginx-deployment
+        image: nginx
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        - name: secrets-store-inline
+          mountPath: "/mnt/secrets-store"
+          readOnly: true
+
+# kubectl apply -f secrets-csi-driver/fixtures/test-with-pod.yml
+# kubectl delete -f ./secrets-csi-driver/fixtures/test-with-pod.yml
+# kubectl exec deploy/nginx-deployment -- ls -la
+# kubectl exec deploy/nginx-deployment -- cat /mnt/secrets-store
+# kubectl exec deploy/nginx-deployment -- ls -la /mnt/secrets-store/_test-secrets-csi-driver_test
+#
