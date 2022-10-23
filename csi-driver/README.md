@@ -1,5 +1,6 @@
 # CSI Driver
 
+- [Secrets Store CSI driver](https://github.com/aws/secrets-store-csi-driver-provider-aws)
 - [Vault CSI](https://www.vaultproject.io/docs/platform/k8s/csi)
 - [ImagePullSecrets](https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/#add-imagepullsecrets-to-a-service-account)
 - [Docs](https://kubernetes-csi.github.io/docs/pod-info.html)
