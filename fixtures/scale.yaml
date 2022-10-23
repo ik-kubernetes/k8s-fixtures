@@ -1,0 +1,64 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-to-scaleout
+  namespace: default
+  labels:
+    app: nginx
+spec:
+  replicas: 10
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: eks-self-managed
+                operator: In
+                values:
+                - "true"
+      # nodeSelector:
+      #   eks.amazonaws.com/capacityType: SPOT
+      containers:
+      - image: nginx
+        name: nginx-to-scaleout
+        resources:
+          limits:
+            cpu: 500m
+            memory: 512Mi
+          requests:
+            cpu: 500m
+            memory: 512Mi
+      tolerations:
+      - effect: NoSchedule
+        key: dedicated
+        operator: Equal
+        value: cluster-resources
+      - effect: NoExecute
+        key: dedicated
+        operator: Equal
+        value: cluster-resources
+      - key: "apm"
+        operator: "Equal"
+        value: "enabled"
+        effect: "NoSchedule"
+      - key: "apm"
+        operator: "Equal"
+        value: "enabled"
+        effect: "NoExecute"
+
+
+# kubectl get nodes --selector='eks-managed=true'
+# kubectl apply -f ./fixtures/scale.yaml
+# kubectl delete -f ./fixtures/scale.yaml
+# or
+# kubectl create deployment autoscaler-demo --image=nginx
+# kubectl scale deployment autoscaler-demo --replicas=50
