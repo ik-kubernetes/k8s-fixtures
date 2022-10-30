@@ -1,0 +1,49 @@
+# https://github.com/emberstack/kubernetes-reflector/blob/main/README.md#usage
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: source-secret
+  annotations:
+    reflector.v1.k8s.emberstack.com/reflection-allowed: "true"
+    reflector.v1.k8s.emberstack.com/reflection-allowed-namespaces: "namespace-1,namespace-2,namespace-[0-9]*"
+data:
+  ...
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: source-config-map
+  annotations:
+    reflector.v1.k8s.emberstack.com/reflection-allowed: "true"
+    reflector.v1.k8s.emberstack.com/reflection-allowed-namespaces: "namespace-1,namespace-2,namespace-[0-9]*"
+data:
+  ...
+---
+# https://github.com/emberstack/kubernetes-reflector/blob/main/README.md#2-annotate-the-mirror-secret-or-configmap
+apiVersion: v1
+kind: Secret
+metadata:
+  name: mirror-secret
+  annotations:
+    reflector.v1.k8s.emberstack.com/reflects: "default/source-secret"
+data:
+  ...
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mirror-config-map
+  annotations:
+    reflector.v1.k8s.emberstack.com/reflects: "default/source-config-map"
+data:
+  ...
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+...
+spec:
+  secretTemplate:
+    annotations:
+      reflector.v1.k8s.emberstack.com/reflection-allowed: "true"
+      reflector.v1.k8s.emberstack.com/reflection-allowed-namespaces: ""

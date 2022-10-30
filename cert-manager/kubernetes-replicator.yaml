@@ -1,0 +1,32 @@
+# https://cert-manager.io/docs/tutorials/syncing-secrets-across-namespaces/#using-kubernetes-replicator
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: source
+  namespace: cert-manager
+spec:
+  secretName: source-tls
+  commonName: source
+  issuerRef:
+    name: source-ca
+    kind: Issuer
+  secretTemplate:
+    annotations:
+      replicator.v1.mittwald.de/replication-allowed: "true"  # permit replication
+      replicator.v1.mittwald.de/replication-allowed-namespaces: "dev,test,prod-[0-9]*"  # comma separated list of namespaces or regular expressions
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: tls-secret-replica
+  namespace: prod-1
+  annotations:
+    replicator.v1.mittwald.de/replicate-from: cert-manager/source-tls
+type: kubernetes.io/tls
+# Normally, we'd create an empty destination secret, but secrets of type
+# 'kubernetes.io/tls' are treated in a special way and need to have properties
+# data["tls.crt"] and data["tls.key"] to begin with, though they may be empty.
+data:
+  tls.key: ""
+  tls.crt: ""
