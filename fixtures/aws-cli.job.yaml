@@ -1,0 +1,21 @@
+# https://www.eksworkshop.com/beginner/110_irsa/deploy/
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: eks-iam-test-s3
+spec:
+  template:
+    metadata:
+      labels:
+        app: eks-iam-test-s3
+    spec:
+      serviceAccountName: iam-test
+      containers:
+      - name: eks-iam-test
+        image: amazon/aws-cli:latest
+        args: ["s3", "ls"]
+      restartPolicy: Never
+
+# kubectl apply -f fixtures/aws-cli.job.yaml
+# kubectl delete -f fixtures/aws-cli.job.yaml
