@@ -1,0 +1,45 @@
+# https://github.com/Azure/gitops-connector
+# https://argocd-notifications.readthedocs.io/en/stable/
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: argocd-notifications-cm
+  namespace: <ARGOCD-NAMESPACE>
+data:
+  trigger.sync-operation-status: |
+    - when: app.status.operationState.phase in ['Error', 'Failed']
+      send: [sync-operation-status-change]
+    - when: app.status.operationState.phase in ['Succeeded']
+      send: [sync-operation-status-change]
+    - when: app.status.operationState.phase in ['Running']
+      send: [sync-operation-status-change]
+    - when: app.status.health.status in ['Progressing']
+      send: [sync-operation-status-change]
+    - when: app.status.health.status in ['Healthy'] && app.status.operationState.phase in ['Succeeded']
+      send: [sync-operation-status-change]
+    - when: app.status.health.status in ['Unknown', 'Suspended', 'Degraded', 'Missing', 'Healthy']
+      send: [sync-operation-status-change]
+  service.webhook.gitops-connector: |
+    url: http://gitops-connector.<GITOPS-CONNECTOR-NAMESPACE>:8080/gitopsphase
+    headers:
+    - name: Content-Type
+      value: application/json
+  template.sync-operation-status-change: |
+    webhook:
+      test-receiver:
+        method: POST
+        body: |
+          {
+            "commitid": "{{.app.status.operationState.operation.sync.revision}}",
+            "phase": "{{.app.status.operationState.phase}}",
+            "sync_status": "{{.app.status.sync.status}}",
+            "health": "{{.app.status.health.status}}",
+            "message": "{{.app.status.operationState.message}}",
+            "resources": {{toJson .app.status.resources}}
+          }
+  subscriptions: |
+    - recipients:
+        - test-receiver:""
+      triggers:
+        - sync-operation-status
