@@ -1,0 +1,82 @@
+---
+apiVersion: karpenter.sh/v1alpha5
+kind: Provisioner
+metadata:
+  creationTimestamp: "2023-01-08T08:57:34Z"
+  generation: 17
+  labels:
+    app.kubernetes.io/instance: prod
+  name: scan-pipeline-node-provisioner
+  resourceVersion: "188490435"
+spec:
+  consolidation:
+    enabled: true
+  kubeletConfiguration:
+    maxPods: 110
+  labels:
+    scan-pipeline-node: "true"
+  limits:
+    resources:
+      cpu: "2400"
+      memory: 4800Gi
+  providerRef:
+    name: deafult-nodes-template
+  requirements:
+  - key: karpenter.sh/capacity-type
+    operator: In
+    values:
+    - spot
+  - key: node.kubernetes.io/instance-type
+    operator: In
+    values:
+    - c6a.2xlarge
+    - c5a.2xlarge
+    - c5.2xlarge
+    - c6a.xlarge
+    - c5a.xlarge
+    - c5.xlarge
+  - key: topology.kubernetes.io/zone
+    operator: In
+    values:
+    - us-east-2a
+    - us-east-2b
+  - key: kubernetes.io/arch
+    operator: In
+    values:
+    - arm64
+    - amd64
+  - key: kubernetes.io/os
+    operator: In
+    values:
+    - linux
+  taints:
+  - effect: NoSchedule
+    key: scan-pipeline-node
+---
+
+apiVersion: karpenter.k8s.aws/v1alpha1
+kind: AWSNodeTemplate
+metadata:
+  generation: 5
+  labels:
+    app.kubernetes.io/instance: prod
+  name: deafult-nodes-template
+spec:
+  amiFamily: Bottlerocket
+  blockDeviceMappings:
+  - deviceName: /dev/xvdb
+    ebs:
+      deleteOnTermination: true
+      encrypted: true
+      volumeSize: 60Gi
+      volumeType: gp3
+  instanceProfile: eks-58c2b634-62f4-55dc-8638-f888aff9c840
+  securityGroupSelector:
+    karpenter.sh/discovery: prod
+  subnetSelector:
+    karpenter.sh/discovery: prod
+  userData: |
+    [settings]
+    [settings.kubernetes]
+    allowed-unsafe-sysctls = ["net.core.somaxconn"]
+    registry-qps = 20
