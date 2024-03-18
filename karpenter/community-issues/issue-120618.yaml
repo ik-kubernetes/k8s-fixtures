@@ -1,0 +1,24 @@
+# ref: https://github.com/kubernetes/kubernetes/issues/120618
+---
+apiVersion: karpenter.k8s.aws/v1alpha1
+kind: AWSNodeTemplate
+metadata:
+  name: default
+spec:
+  amiFamily: AL2
+  securityGroupSelector:
+    aws:eks:cluster-name: ubuntu
+  subnetSelector:
+    Name: eksctl-ubuntu-cluster/SubnetPrivate*
+  userData: |
+    #!/bin/bash
+    set -e
+
+    cat << EOF > /etc/systemd/system/kubelet.service.d/90-kubelet-extra-args.conf
+    [Service]
+    Environment="KUBELET_EXTRA_ARGS=--feature-gates=NodeLogQuery=true $KUBELET_EXTRA_ARGS"
+    EOF
+    systemctl daemon-reload
+
+    echo "$(jq '.enableSystemLogHandler=true' /etc/kubernetes/kubelet/kubelet-config.json)" > /etc/kubernetes/kubelet/kubelet-config.json
+    echo "$(jq '.enableSystemLogQuery=true' /etc/kubernetes/kubelet/kubelet-config.json)" > /etc/kubernetes/kubelet/kubelet-config.json

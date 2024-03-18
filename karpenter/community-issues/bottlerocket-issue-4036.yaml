@@ -1,0 +1,44 @@
+# ref: https://github.com/aws/karpenter-provider-aws/issues/4036
+---
+apiVersion: karpenter.k8s.aws/v1alpha1
+kind: AWSNodeTemplate
+metadata:
+  name: bottlerocket
+spec:
+  amiFamily: Bottlerocket
+  subnetSelector:                             # required
+    Name: '*EKS*'
+  securityGroupSelector:                      # required, when not using launchTemplate
+    karpenter.sh/discovery: prod-2-use1
+  blockDeviceMappings:
+    - deviceName: /dev/xvda
+      ebs:
+        volumeSize: 4Gi
+        volumeType: gp3
+        encrypted: true
+        kmsKeyID: REDACTED
+        deleteOnTermination: true
+    - deviceName: /dev/xvdb
+      ebs:
+        volumeSize: 50Gi
+        volumeType: gp3
+        iops: 3000
+        encrypted: true
+        kmsKeyID: REDACTED
+        deleteOnTermination: true
+        throughput: 125
+  userData: |
+    [settings.kubernetes]
+    kube-api-qps = 30
+    [settings.kubernetes.eviction-hard]
+    "memory.available" = "20%"
+    "nodefs.available" = "10%"
+    "nodefs.inodesFree" = "10%"
+    [settings.kubernetes.system-reserved]
+    cpu = "300m" # EKSCTL example shows 300m
+    memory = "300Mi" # EKSCTL example shows 300Mi
+    ephemeral-storage = "1Gi"
+  tags:
+    Name: eks - prod-2-use1 - karpenter.sh/provisioner/karpenter
+    Service: Kubernetes
+    Support Team: Cloud Services

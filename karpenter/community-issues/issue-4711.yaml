@@ -1,0 +1,32 @@
+# ref: https://github.com/aws/karpenter-provider-aws/issues/4711
+---
+apiVersion: karpenter.k8s.aws/v1alpha1
+  kind: AWSNodeTemplate
+  metadata:
+    name: jenkins-agent-spot
+  spec:
+    amiFamily: AL2
+    instanceProfile: KarpenterNodeInstanceProfile-jenkins-nonprod-sandbox-us-west-2
+    subnetSelector:
+      Name: "jenkins-nonprod-sandbox-private*"
+    securityGroupSelector:
+      Name: "eks-cluster-sg-jenkins-nonprod-sandbox*"
+    userData: |
+      MIME-Version: 1.0
+      Content-Type: multipart/mixed; boundary="BOUNDARY"
+
+      --BOUNDARY
+      Content-Type: text/x-shellscript; charset="us-ascii"
+
+      #!/bin/bash
+      echo "$(jq '.serializeImagePulls=false' /etc/kubernetes/kubelet/kubelet-config.json)" > /etc/kubernetes/kubelet/kubelet-config.json
+
+      --BOUNDARY--
+    blockDeviceMappings:
+      - deviceName: /dev/xvda
+        ebs:
+          volumeSize: 100
+          volumeType: gp3
+          iops: 3000
+          throughput: 125
+          deleteOnTermination: true

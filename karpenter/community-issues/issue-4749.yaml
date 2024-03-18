@@ -1,0 +1,42 @@
+# ref: https://github.com/aws/karpenter-provider-aws/issues/4740
+---
+spec:
+  amiFamily: AL2
+  amiSelector:
+    'aws::ids': ami-04e4715dd39e31d8b
+  blockDeviceMappings:
+    - deviceName: /dev/xvda
+      ebs:
+        deleteOnTermination: true
+        encrypted: true
+        volumeSize: 200Gi
+        volumeType: gp3
+  detailedMonitoring: true
+  securityGroupSelector:
+    karpenter.sh/discovery: dev-us-east-1
+  subnetSelector:
+    karpenter.sh/discovery: dev-us-east-1
+  tags:
+    Managed_by: karpenter
+    Name: dev-us-east-1
+    cluster: dev
+    cluster_name: dev-us-east-1
+  userData: >
+    #!/bin/bash -xe
+
+    export CLUSTER_NAME=dev-us-east-1
+
+    export CLUSTER_ENDPOINT=$(aws eks describe-cluster --name $CLUSTER_NAME
+    --query cluster.endpoint --output text)
+
+    export CLUSTER_CA=$(aws eks describe-cluster --name $CLUSTER_NAME --query
+    cluster.certificateAuthority --output text)
+
+    exec > >(tee /var/log/user-data.log|logger -t user-data -s 2>/dev/console)
+    2>&1
+
+    /etc/eks/bootstrap.sh $CLUSTER_NAME --apiserver-endpoint $CLUSTER_ENDPOINT
+    --b64-cluster-ca $CLUSTER_CA \
+
+    --kubelet-extra-args '--cpu-manager-policy=static
+    --topology-manager-policy=single-numa-node'

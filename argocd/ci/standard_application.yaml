@@ -1,0 +1,27 @@
+# https://github.com/exzeo-devops/helm-charts/blob/main/charts/argocd-apps/ci/standard_application.yaml
+
+default:
+  project: "default"
+  source:
+    repoURL: "git@github.com:exzeo-devops/argocd-system.git"
+  revisionHistoryLimit: 10
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+
+applications:
+  metrics-server:
+    namespace: kube-system
+    source:
+      repoURL: https://kubernetes-sigs.github.io/metrics-server
+      targetRevision: "x"
+      chart: "metrics-server"
+      helm:
+        valuesObject:
+          replicas: 1
+          metrics:
+            enabled: true
+          serviceMonitor:
+            enabled: true
+            

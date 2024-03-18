@@ -1,0 +1,65 @@
+# https://github.com/exzeo-devops/helm-charts/blob/main/charts/argocd-apps/values.yaml
+## @section ArgoCD default parameters
+
+# @descriptionStart
+# Default values when not provided by the application or not available
+# @descriptionEnd
+# @skip default
+## @extra default.project The project the application belongs to.
+## @skip default.source
+## @extra default.source.repoURL Default RepoURL, can point to either a Helm chart repo or a git repo.
+## @param default.syncPolicy.automated.prune Specifies if resources should be pruned during auto-syncing
+## @param default.syncPolicy.automated.selfHeal Specifies if partial app sync should be executed when resources are changed only in target Kubernetes cluster and no git change detected
+## @param default.syncPolicy.syncOptions.createNamespace Namespace Auto-Creation ensures that namespace specified as the application destination exists in the destination cluster.
+## @extra default.syncPolicy.syncOptions.replace If the Replace=true sync option is set the Argo CD will use kubectl replace or kubectl create command to apply changes.
+## @extra default.syncPolicy.syncOptions.pruneLast Allow the ability for resource pruning to happen as a final, implicit wave of a sync operation
+## @extra default.syncPolicy.syncOptions.applyOutOfSyncOnly
+## @extra default.syncPolicy.syncOptions.validate disables resource validation (equivalent to 'kubectl apply --validate=false')
+## @extra default.syncPolicy.syncOptions.respectIgnoreDifferences When syncing changes, respect fields ignored by the ignoreDifferences configuration
+## @extra default.syncPolicy.syncOptions.serverSideApply
+default:
+  pathPrefix: ""
+  source:
+    repoURL: ""
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      createNamespace: true
+
+    # The retry feature is available since v1.7
+    # retry:
+    #   limit: 5 # number of failed sync attempt retries; unlimited number of attempts if less than 0
+    #   backoff:
+    #     duration: 5s # the amount to back off. Default unit is seconds, but could also be a duration (e.g. "2m", "1h")
+    #     factor: 2 # a factor to multiply the base duration after each failed retry
+    #     maxDuration: 3m # the maximum amount of time allowed for the backoff strategy
+
+## @section ArgoCD application parameters
+
+## @skip applications
+## @extra applications.<name>
+applications: []
+  # metrics-server:
+  #   namespace: kube-system
+
+# Example application
+# applications:
+#   metrics-server:
+#     namespace: kube-system
+#     sources:
+#       default:
+#         repoURL: https://kubernetes-sigs.github.io/metrics-server
+#         helm:
+#           valuesObject:
+#             replicas: 1
+#             metrics:
+#               enabled: true
+#             serviceMonitor:
+#               enabled: true
+#       git:
+#         path: "metrics-server"
+#         directory:
+#           recurse: true
+#           include: "*.yaml"
