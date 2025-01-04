@@ -1,0 +1,6 @@
+dependencies:
+- name: cost-analyzer
+  repository: https://kubecost.github.io/cost-analyzer
+  version: 2.4.3
+digest: sha256:21477490ec3eacbb0567e928156924b0b066fc09abbd8abb61f5c032f0d5c18e
+generated: "2024-11-22T13:22:53.421416348Z"

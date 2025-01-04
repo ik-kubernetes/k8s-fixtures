@@ -1,0 +1,29 @@
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: "{{ .Values.deployment.service.name }}"
+{{- if .Values.gardenercert.enabled }}
+  annotations:
+    cert.gardener.cloud/purpose: managed
+    dns.gardener.cloud/class: garden
+    dns.gardener.cloud/dnsnames: {{ .Values.gardenercert.dnsnames }}
+    dns.gardener.cloud/ttl: "180"
+{{- end }}
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - "{{ .Values.deployment.ingress.host }}"
+      secretName: "{{ .Values.deployment.tls.name }}"
+  rules:
+    - host: "{{ .Values.deployment.ingress.host }}"
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: "{{ .Values.deployment.service.name }}"
+                port:
+                  number: {{.Values.deployment.service.port}}

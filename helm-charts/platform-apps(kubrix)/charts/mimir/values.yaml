@@ -1,0 +1,9 @@
+mimir:
+  metaMonitoring:
+    dashboards:
+      enabled: true
+    serviceMonitor:
+      enabled: true
+    grafanaAgent:
+      enabled: true
+#      installOperator: true

@@ -1,0 +1,24 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ template "loki.fullname" .Subcharts.loki }}-datasource
+  labels:
+    grafana_datasource: "1"
+data:
+  loki-datasource.yaml: |-
+    apiVersion: 1
+    datasources:
+    - name: loki
+      type: loki
+      uid: loki
+      basicAuth: false
+      url: http://{{ template "loki.fullname" .Subcharts.loki }}.{{ .Release.Namespace }}.svc:3100
+      access: proxy
+      isDefault: false
+      jsonData:
+        httpHeaderName1: "X-Scope-OrgID"
+        derivedFields:
+          - datasourceUid: tempo
+            matcherRegex: "^.*?traceI[d|D]=(\\w+).*$"
+            name: traceId
+            url: '$${__value.raw}'
